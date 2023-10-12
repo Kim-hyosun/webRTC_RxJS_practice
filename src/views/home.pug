@@ -10,7 +10,10 @@ html(lang="ko")
   header 
     h1 우리 지금 Zzom 만나!
   main 
-    h2 Welcome! Here is Zzom!
-    button Call my peer
+    ul
+    form 
+      input(type="text", placeholder="내가 하고픈 말은?" required)
+      button Send
+
   script(src="https://unpkg.com/@reactivex/rxjs/dist/global/rxjs.umd.js") 
   script(src="/public/js/app.js") 

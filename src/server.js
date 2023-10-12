@@ -1,4 +1,6 @@
 import express from 'express';
+import http from 'http';
+import WebSocket from 'ws';
 
 const app = express();
 
@@ -10,4 +12,20 @@ app.get('/*', (req, res) => res.redirect('/'));
 
 const handleListen = () => console.log(`Listening on localhost:3000`);
 
-app.listen(3000, handleListen);
+const server = http.createServer(app);
+
+const wss = new WebSocket.Server({ server });
+
+const sockets = []; //사용자 연결위해
+
+wss.on('connection', (socket) => {
+  //@socket : 브라우저로의 연결
+  sockets.push(socket);
+  console.log('connected to browser');
+  socket.on('close', () => console.log('브라우저와 연결이 끊어졌습니다.'));
+  socket.on('message', (msg) => {
+    sockets.forEach((aSocket) => aSocket.send(msg.toString())); //프론트에서 서버로 받은 메시지 바로 프론트로 보냄
+  });
+});
+
+server.listen(3000, handleListen);
