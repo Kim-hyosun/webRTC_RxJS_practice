@@ -10,8 +10,11 @@ html(lang="ko")
   header 
     h1 우리 지금 Zzom 만나!
   main 
+    form#nick
+      input(type="text", placeholder="nickname" required)
+      button Save
     ul
-    form 
+    form#message
       input(type="text", placeholder="내가 하고픈 말은?" required)
       button Send
 
