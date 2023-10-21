@@ -1,6 +1,6 @@
 import express from 'express';
 import http from 'http';
-import SocketIo from 'socket.io';
+import SocketIO from 'socket.io';
 
 const app = express();
 
@@ -13,12 +13,25 @@ app.get('/*', (req, res) => res.redirect('/'));
 const handleListen = () => console.log(`Listening on localhost:3000`);
 
 const httpServer = http.createServer(app);
-const wsServer = SocketIo(httpServer);
+const wsServer = SocketIO(httpServer);
 
 wsServer.on('connection', (socket) => {
-  socket.on('enter_room', (msg, Done) => {
-    console.log(msg);
-    Done('와 정말 신기하당'); //프론트에서 보낸 콜백을 서버에서 실행
+  socket.onAny((e) => {
+    console.log(`소켓이벤트: ${e}`);
+  });
+  socket.on('enter_room', (roomName, FEcallback) => {
+    socket.join(roomName);
+    FEcallback(); //프론트에서 보낸 콜백을 서버에서 실행
+    socket.to(roomName).emit('welcome');
+  });
+  socket.on('disconnecting', () => {
+    socket.rooms.forEach((room) => {
+      socket.to(room).emit('bye');
+    });
+  });
+  socket.on('new_message', (msg, room, done) => {
+    socket.to(room).emit('new_message', msg);
+    done();
   });
 });
 
