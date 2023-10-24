@@ -17,7 +17,7 @@ const addMessage = (message) => {
 
 const handleMessageSubmit = (event) => {
   event.preventDefault();
-  const input = room.querySelector('input');
+  const input = room.querySelector('#msg input');
   let value = input.value;
   socket.emit('new_message', input.value, roomName, () => {
     addMessage(`me: ${value}`);
@@ -25,35 +25,47 @@ const handleMessageSubmit = (event) => {
   input.value = '';
 };
 
+const handleNicknameSubmit = (event) => {
+  event.preventDefault();
+  const input = room.querySelector('#name input');
+
+  socket.emit('nickname', input.value);
+};
+
 const showRoom = () => {
   welcome.hidden = true;
   room.hidden = false;
   const h3 = room.querySelector('h3');
   h3.innerHTML = `Room ${roomName}`;
-  const form = room.querySelector('form');
-  form.addEventListener('submit', handleMessageSubmit);
+  const msgForm = room.querySelector('#msg');
+  const nameForm = room.querySelector('#name');
+  msgForm.addEventListener('submit', handleMessageSubmit);
+  nameForm.addEventListener('submit', handleNicknameSubmit);
 };
 
 const handleRoomSubmit = (event) => {
   event.preventDefault();
-  const input = form.querySelector('input');
+
+  const roomInput = form.querySelector('#roomName');
+  const nicknameInput = form.querySelector('#nickName');
   socket.emit(
     'enter_room',
-    input.value,
+    roomInput.value,
+    nicknameInput.value,
     showRoom //인수는 순차 실행됨
   );
-  roomName = input.value;
-  input.value = '';
+  roomName = roomInput.value;
+  roomInput.value = '';
 };
 
 form.addEventListener('submit', handleRoomSubmit);
 
-socket.on('welcome', () => {
-  addMessage(`???님이 ??방에 입장하였습니다.`);
+socket.on('welcome', (user) => {
+  addMessage(`${user}님이 이 방에 착륙하였습니다.`);
 });
 
-socket.on('bye', () => {
-  addMessage(`???님이 ??방에 퇴장하였습니다.`);
+socket.on('bye', (user) => {
+  addMessage(`${user}님이 이 방에서 나갔습니다.`);
 });
 
 socket.on('new_message', addMessage);
