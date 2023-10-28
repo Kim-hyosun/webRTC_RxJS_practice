@@ -1,6 +1,7 @@
 import express from 'express';
 import http from 'http';
-import SocketIO from 'socket.io';
+import { Server } from 'socket.io';
+import { instrument } from '@socket.io/admin-ui';
 
 const app = express();
 
@@ -13,11 +14,19 @@ app.get('/*', (req, res) => res.redirect('/'));
 const handleListen = () => console.log(`Listening on localhost:3000`);
 
 const httpServer = http.createServer(app);
-const wsServer = SocketIO(httpServer);
+const wsServer = new Server(httpServer, {
+  cors: {
+    origin: ['https://admin.socket.io'],
+    credentials: true,
+  },
+});
+instrument(wsServer, {
+  auth: false,
+});
 
 const publicRooms = () => {
   const {
-    socket: {
+    sockets: {
       adapter: { sids, rooms },
     },
   } = wsServer;
@@ -30,6 +39,10 @@ const publicRooms = () => {
   return publicRooms;
 };
 
+const countRoom = (roomName) => {
+  return wsServer.sockets.adapter.rooms.get(roomName)?.size;
+};
+
 wsServer.on('connection', (socket) => {
   socket.onAny((e) => {
     console.log(`소켓이벤트: ${e}`);
@@ -38,13 +51,21 @@ wsServer.on('connection', (socket) => {
   socket.on('enter_room', (roomName, nickName, FEcallback) => {
     socket['nickname'] = nickName;
     socket.join(roomName);
-    FEcallback(); //프론트에서 보낸 콜백을 서버에서 실행
-    socket.to(roomName).emit('welcome', socket.nickname);
+    FEcallback(); //프론트에서 보낸 콜백(showRoom)을 서버에서 실행
+    socket.to(roomName).emit('welcome', socket.nickname, countRoom(roomName));
+    wsServer.sockets.emit('room_change', publicRooms()); //연결된 모든 소켓에 메시지 보냄
   });
+
   socket.on('disconnecting', () => {
+    //연결끊어지기 직전에 동작
     socket.rooms.forEach((room) => {
-      socket.to(room).emit('bye', socket.nickname);
+      socket.to(room).emit('bye', socket.nickname, countRoom(room) - 1);
     });
+  });
+
+  socket.on('disconnect', () => {
+    //연결 끊어지고 나서 동작
+    wsServer.sockets.emit('room_change', publicRooms()); //연결된 모든 소켓에 메시지 보냄
   });
   socket.on('new_message', (msg, room, done) => {
     socket.to(room).emit('new_message', `${socket.nickname}: ${msg}`);
