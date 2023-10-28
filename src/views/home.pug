@@ -9,29 +9,33 @@ html(lang="ko")
   body 
   header 
     h1 우리 지금 Zzom 만나!
-  main 
-    div#welcome
-      form
-        input#roomName(placeholder="chatroom's name" required, type="text")
-        input#nickName(placeholder="your nickname" required, type="text")
-        button Enter room
-      h4 현재 개설된 방: 
-      ul
-    div#room
-      h3
-      ul
-      form#msg
-        input(placeholder="message", required, type="text")
-        button Send
+  main
+    div#myStream
+    video#myFace(autoplay, playsinline, width="400", height="400")
+    button#mute 내 마이크 끄기
+    button#camera 내 카메라 끄기
 
 
-  // form#nick
-  //    input(type="text", placeholder="nickname" required)
-  //    button Save
-  //  ul
-  //  form#message
-  //    input(type="text", placeholder="내가 하고픈 말은?" required)
-  //    button Send
+
+
+
+  //main 
+  //  div#welcome
+  //    form
+  //      input#roomName(placeholder="chatroom's name" required, type="text")
+  //      input#nickName(placeholder="your nickname" required, type="text")
+  //      button Enter room
+  //    h4 현재 개설된 방: 
+  //    ul
+  //  div#room
+  //    h3
+  //    ul
+  //    form#msg
+  //      input(placeholder="message", required, type="text")
+  //      button Send
+
+
+
 
   script(src="https://unpkg.com/@reactivex/rxjs/dist/global/rxjs.umd.js") 
   script(src="/socket.io/socket.io.js")

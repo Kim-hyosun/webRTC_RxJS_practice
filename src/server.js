@@ -1,5 +1,24 @@
 import express from 'express';
 import http from 'http';
+import SocketIO from 'socket.io';
+const app = express();
+
+app.set('view engine', 'pug');
+app.set('views', __dirname + '/views');
+app.use('/public', express.static(__dirname + '/public'));
+app.get('/', (req, res) => res.render('home'));
+app.get('/*', (req, res) => res.redirect('/'));
+
+const httpServer = http.createServer(app);
+const wsServer = SocketIO(httpServer);
+const handleListen = () => console.log(`Listening on localhost:3000`);
+
+httpServer.listen(3000, handleListen);
+
+/* 
+채팅 기능
+import express from 'express';
+import http from 'http';
 import { Server } from 'socket.io';
 import { instrument } from '@socket.io/admin-ui';
 
@@ -73,13 +92,14 @@ wsServer.on('connection', (socket) => {
   });
 });
 
+httpServer.listen(3000, handleListen);
+*/
+
 //ws보다 socketIO가 좋은점
 //1. 이벤트 커스텀 가능(send만 쓰지 않아도 됨)
 //2. front에서 object, 인자를 원하는만큼 전송가능(ws는 string만가능)
 //3. 프론트에서 입력한 콜백을 서버로부터 실행할수 있음(콜백함수는 emit의 마지막 인수이어야 함)
 //4. 서버연결 끊기면 알아서 재연결 시도함
-
-httpServer.listen(3000, handleListen);
 
 /* 
 //ws 를 이용한 연결
