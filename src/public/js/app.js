@@ -3,11 +3,16 @@ const socket = io();
 const myFace = document.getElementById('myFace');
 const muteBtn = document.getElementById('mute');
 const cameraBtn = document.getElementById('camera');
+const camerasSelect = document.getElementById('cameras');
 let myStream;
 let muted = false;
 let cameraOff = false;
 
 const handleMuteClick = () => {
+  //console.log(myStream.getAudioTracks());
+  myStream
+    .getAudioTracks()
+    .forEach((track) => (track.enabled = !track.enabled));
   if (!muted) {
     muteBtn.innerText = '내 마이크 켜기';
     muted = true;
@@ -16,18 +21,44 @@ const handleMuteClick = () => {
     muted = false;
   }
 };
+
 const handleCameraClick = () => {
-  if (!cameraOff) {
-    cameraBtn.innerText = '내 카메라 켜기';
+  //console.log(myStream.getVideoTracks());
+  myStream
+    .getVideoTracks()
+    .forEach((track) => (track.enabled = !track.enabled));
+  if (cameraOff) {
+    cameraBtn.innerText = '내 카메라 끄기';
     cameraOff = false;
   } else {
-    cameraBtn.innerText = '내 카메라 끄기';
+    cameraBtn.innerText = '내 카메라 켜기';
     cameraOff = true;
   }
 };
 
+const handleCameraChange = () => {
+  console.log(camerasSelect.value);
+};
+
 muteBtn.addEventListener('click', handleMuteClick);
 cameraBtn.addEventListener('click', handleCameraClick);
+camerasSelect.addEventListener('input', handleCameraChange);
+
+const getCameras = async () => {
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const cameras = devices.filter((device) => device.kind === 'videoinput');
+    cameras.forEach((camera) => {
+      const option = document.createElement('option');
+      option.value = camera.deviceId;
+      option.innerText = camera.label;
+      camerasSelect.appendChild(option);
+    });
+    //console.log(cameras);
+  } catch (err) {
+    console.log(err);
+  }
+};
 
 const getMedia = async () => {
   try {
@@ -35,10 +66,11 @@ const getMedia = async () => {
       audio: true,
       video: true,
     });
-    console.log(myStream);
+    //console.log(myStream);
     myFace.srcObject = myStream;
-  } catch (e) {
-    console.log(e);
+    await getCameras();
+  } catch (err) {
+    console.log(err);
   }
 };
 getMedia();
