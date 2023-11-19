@@ -1,6 +1,7 @@
 import express from 'express';
 import http from 'http';
 import SocketIO from 'socket.io';
+import { WebSocketServer } from 'ws';
 const app = express();
 
 app.set('view engine', 'pug');
@@ -11,6 +12,15 @@ app.get('/*', (req, res) => res.redirect('/'));
 
 const httpServer = http.createServer(app);
 const wsServer = SocketIO(httpServer);
+
+wsServer.on('connection', (socket) => {
+  socket.on('join_room', (roomName, startMedia) => {
+    socket.join(roomName);
+    startMedia(); //실행
+    socket.to(roomName).emit('welcome');
+  });
+});
+
 const handleListen = () => console.log(`Listening on localhost:3000`);
 
 httpServer.listen(3000, handleListen);
